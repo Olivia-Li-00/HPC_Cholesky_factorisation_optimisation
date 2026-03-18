@@ -1,0 +1,6 @@
+find_package(Eigen3 REQUIRED)
+add_executable(test_correctness test_correctness.cpp)
+target_link_libraries(test_correctness PRIVATE cholesky_factorisation_lib Eigen3::Eigen)
+
+add_executable(test_error_cases test_error_cases.cpp)
+target_link_libraries(test_error_cases PRIVATE cholesky_factorisation_lib)
