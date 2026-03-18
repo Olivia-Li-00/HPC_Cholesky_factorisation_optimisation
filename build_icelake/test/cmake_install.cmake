@@ -1,4 +1,4 @@
-# Install script for directory: /home/zl656/final_c2/v03/test
+# Install script for directory: /home/zl656/final_c2/v04/test
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

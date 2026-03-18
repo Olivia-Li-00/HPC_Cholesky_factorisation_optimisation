@@ -2,21 +2,22 @@
  * @file:
  *      cholesky_factorisation.cpp
  * @brief:
- *      Single-thread optimised implementation of Cholesky factorisation algorithm (v0.3)
+ *      Single-thread optimised implementation of Cholesky factorisation algorithm (v0.4)
  *
- *      This file builds on v0.2 with the following optimisations:
- *      - Exploits matrix and algorithm symmetry to halve the work: only update the upper triangle (L^T)
- *        is computed during factorisation, eliminating the separate column update loop and lower triangle of the submatrix update
- *      - The submatrix update inner loop starts at j=i instead of j=p+1, updating
- *        only the upper triangle of the submatrix
- *      - A final copy pass writes the upper triangle to the lower triangle,
- *        with j-outer/i-inner ordering to prioritise contiguous writes over reads
+ *      This file builds on v0.3 with the following optimisations:
+ *      - Adds OpenMP SIMD pragmas to the row normalisation loop, the submatrix
+ *        update inner loop, and the symmetry copy inner loop, enabling the
+ *        compiler to generate vectorised instructions
+ *      - Adds __builtin_expect hint on the positive-definiteness check to
+ *        improve branch prediction for the common case (valid input matrix)
  *
+ *      Optimisations carried forward from v0.3:
+ *      - Symmetry exploitation: only upper triangle updated, with final copy pass
  *      Optimisations carried forward from v0.2:
  *      - Multiplication by reciprocal instead of division
  *      Optimisations carried forward from v0.1:
  *      - Reordered submatrix update loops to avoid strided memory access
- *      - Hoisted j-independent elements out of the j-inner loop
+ *      - Hoisted j-independent element out of the j-inner loop
  *
  *      All other aspects (input validation, in-place computation, timing) remain
  *      identical to v0.0. The algorithm has overall O(n^3) complexity.
@@ -67,19 +68,15 @@ static int check_symmetry(const double *c, const long n) {
 /** Cholesky Factorisation Algorithm
  *
  * @brief:
- *     In-place Cholesky factorisation, optimised implementation v0.3
+ *     In-place Cholesky factorisation, optimised implementation v0.4
  *
- *           ***** Improvement compared to v0.2 *****
- *     - Exploits symmetry of the input matrix: only computes and updates the
- *       upper triangle (L^T) during factorisation, removing the separate column
- *       normalisation loop entirely and the update of the lower triangle of the submatrix update
- *     - The hoisted variable changes from c[n*i+p] (column element) to c[n*p+i]
- *       (row element), since only the upper triangle is maintained
- *     - The submatrix inner loop range changes from j=p+1..n to j=i..n,
- *       skipping the lower triangle and roughly halving the update work
- *     - A separate copy pass at the end fills the lower triangle (L) from
- *       the upper triangle (L^T), using j-outer/i-inner ordering to prioritise
- *       contiguous writes over contiguous reads
+ *           ***** Improvement compared to v0.3 *****
+ *     - Adds #pragma omp simd to three inner loops (row normalisation,
+ *       submatrix update, and symmetry copy), hinting the compiler to
+ *       generate SIMD vector instructions
+ *     - Wraps the positive-definiteness check with __builtin_expect(..., 0)
+ *       to mark the error path as unlikely, helping the branch predictor
+ *       keep the fast path in the instruction pipeline
  *
  *     1. Mathematical Foundation:
  *         Given any symmetric, positive-definite matrix C, one could factorise such matrix into a
@@ -139,7 +136,8 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
 
         // Checks for input requirements
         // 4) Input matrix must be positive-definite
-        if (c[p*n+p] < FLOAT_TOL) {
+        // v04 to help with branch prediction: use __builtin_expect with argument 0 (the input will likely to be a positive definite matrix)
+        if (__builtin_expect(c[p*n+p] < FLOAT_TOL, 0)) {
             fprintf(stderr, "Error: Matrix is not positive-definite, diagonal elements at [i,j]=[%ld,%ld] is %.6e.\n", p, p, c[p*n+p]);
             return -1.0;
         }
@@ -149,8 +147,10 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
         c[n*p+p]=diag; // Update diagonal element
         double inv_diag = 1.0 / diag;
 
+        // v04 OpenMP pragma for simd vectorisation
         // v03 only keep the row update and remove the column update due to symmetry
         // v03 only need to update on one side, choose row over column, for contiguous access
+        #pragma omp simd
         for (long j=p+1; j<n; j++) { // Update row to right of diagonal element
             c[n*p+j]*=inv_diag; // v02 multiplication instead of division
         }
@@ -161,6 +161,8 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
         for (long i=p+1; i<n; i++) { // Update submatrix below-right of the diagonal element
             // v01 Hoisting
             double c_pi = c[n*p+i];
+            // v04 OpenMP pragma for simd vectorisation
+            #pragma omp simd
             for (long j=i; j<n; j++) {
                 c[n*i+j] -= c_pi * c[n*p+j];
             }
@@ -170,6 +172,8 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
     // v03 copy the upper triangle (L^T) to lower triangle (L) directly
     // v03 j is the outer loop and i is the inner loop: prioritise contiguous write over contiguous read, due to the cost of cache coherence
     for (long j=1; j<n; j++) {
+        // v04 OpenMP pragma for simd vectorisation
+        #pragma omp simd
         for (long i=0; i<j; i++) {
             c[n*j+i] = c[n*i+j];
         }
