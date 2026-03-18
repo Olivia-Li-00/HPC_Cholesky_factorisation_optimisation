@@ -2,12 +2,16 @@
  * @file:
  *      cholesky_factorisation.cpp
  * @brief:
- *      Single-thread optimised implementation of Cholesky factorisation algorithm (v0.1)
+ *      Single-thread optimised implementation of Cholesky factorisation algorithm (v0.2)
  *
- *      This file builds on the baseline (v0.0) with the following optimisation:
- *      - Reorders the submatrix update loops to avoid strided memory access (both read and write)
- *        (i-outer, j-inner for contiguous row-wise access)
- *      - Hoists the column element c[i,p] out of the j-inner loop to reduce redundant memory loads
+ *      This file builds on v0.1 with the following optimisation:
+ *      - Replaces division by the diagonal element with multiplication by its
+ *        reciprocal in the row and column normalisation loops, as multiplication
+ *        is cheaper than division.
+ *
+ *      Optimisations carried forward from v0.1:
+ *      - Reordered submatrix update loops to avoid strided memory access (read and write)
+ *      - Hoisted c[n*i+p] out of the inner loop
  *
  *      All other aspects (input validation, in-place computation, timing) remain
  *      identical to v0.0. The algorithm has overall O(n^3) complexity.
@@ -55,17 +59,16 @@ static int check_symmetry(const double *c, const long n) {
     return 0;
 }
 
- /** Cholesky Factorisation Algorithm
+/** Cholesky Factorisation Algorithm
  *
  * @brief:
- *     In-place Cholesky factorisation, optimised implementation v0.1
+ *     In-place Cholesky factorisation, optimised implementation v0.2
  *
- *           ***** Improvement compared to v0.0 *****
- *     - Reordered the submatrix update from j-outer/i-inner to i-outer/j-inner,
- *       so that the inner loop reads and writes to contiguous memory (row-wise access),
- *       avoiding strided access.
- *     - Hoisted c[n*i+p] out of the inner loop into a local variable (c_ip),
- *       eliminating a redundant memory load per inner iteration
+ *           ***** Improvement compared to v0.1 *****
+ *     - Precomputes the reciprocal of the diagonal element (inv_diag = 1.0 / diag)
+ *       and replaces all divisions (c[...] /= diag) with multiplications
+ *       (c[...] *= inv_diag), reducing the cost of the row and column normalisation
+ *       loops since floating-point division is typically slower than multiplication
  *
  *     1. Mathematical Foundation:
  *         Given any symmetric, positive-definite matrix C, one could factorise such matrix into a
@@ -129,15 +132,17 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
             return -1.0;
         }
 
+        // v02 multiplication instead of division
         double diag=sqrt(c[p*n+p]);
         c[n*p+p]=diag; // Update diagonal element
+        double inv_diag = 1.0 / diag;
 
         for (long j=p+1; j<n; j++) { // Update row to right of diagonal element
-            c[n*p+j]/=diag;
+            c[n*p+j]*=inv_diag; // v02 multiplication instead of division
         }
 
         for (long i=p+1; i<n; i++) { // Update column below diagonal element
-            c[n*i+p]/=diag;
+            c[n*i+p]*=inv_diag; // v02 multiplication instead of division
         }
 
         // v01 Avoid strided read and write
