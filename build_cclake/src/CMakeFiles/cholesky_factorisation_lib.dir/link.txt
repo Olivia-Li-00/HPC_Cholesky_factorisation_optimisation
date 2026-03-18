@@ -1,2 +1,0 @@
-/usr/local/software/spack/csd3/opt-2024-06-01/linux-rocky8-cascadelake/gcc-13.3.0/binutils-2.42-y33xj6rqcsxaa6c457snjnvebbrtrtg6/bin/ar qc libcholesky_factorisation_lib.a CMakeFiles/cholesky_factorisation_lib.dir/cholesky_factorisation.cpp.o
-/usr/local/software/spack/csd3/opt-2024-06-01/linux-rocky8-cascadelake/gcc-13.3.0/binutils-2.42-y33xj6rqcsxaa6c457snjnvebbrtrtg6/bin/ranlib libcholesky_factorisation_lib.a

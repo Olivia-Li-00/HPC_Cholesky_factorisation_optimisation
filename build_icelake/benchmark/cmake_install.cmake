@@ -1,4 +1,4 @@
-# Install script for directory: /home/zl656/final_c2/v00/benchmark
+# Install script for directory: /home/zl656/final_c2/v01/benchmark
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

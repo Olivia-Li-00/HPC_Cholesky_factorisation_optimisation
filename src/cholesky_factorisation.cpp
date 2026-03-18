@@ -2,16 +2,15 @@
  * @file:
  *      cholesky_factorisation.cpp
  * @brief:
- *      Baseline implementation of Cholesky factorisation algorithm (v0.0)
+ *      Single-thread optimised implementation of Cholesky factorisation algorithm (v0.1)
  *
- *      This file provides a reference implementation of the Cholesky factorisation
- *      for symmetric positive-definite matrices. The implementation:
- *      - Performs comprehensive input validation (matrix size, symmetry, positive-definiteness)
- *      - Uses in-place computation to factor matrix C into L L^T form
- *      - Measures execution time using omp_get_wtime for performance evaluation
- *      - Serves as the baseline version against which optimisations will be compared
+ *      This file builds on the baseline (v0.0) with the following optimisation:
+ *      - Reorders the submatrix update loops to avoid strided memory access (both read and write)
+ *        (i-outer, j-inner for contiguous row-wise access)
+ *      - Hoists the column element c[i,p] out of the j-inner loop to reduce redundant memory loads
  *
- *      The algorithm has overall O(n^3) complexity.
+ *      All other aspects (input validation, in-place computation, timing) remain
+ *      identical to v0.0. The algorithm has overall O(n^3) complexity.
  */
 
 #include "cholesky_factorisation.h"
@@ -56,10 +55,17 @@ static int check_symmetry(const double *c, const long n) {
     return 0;
 }
 
-/** Cholesky Factorisation Algorithm
+ /** Cholesky Factorisation Algorithm
  *
- * @brief: 
- *     In-place Cholesky factorisation, baseline implementation v0.0 
+ * @brief:
+ *     In-place Cholesky factorisation, optimised implementation v0.1
+ *
+ *           ***** Improvement compared to v0.0 *****
+ *     - Reordered the submatrix update from j-outer/i-inner to i-outer/j-inner,
+ *       so that the inner loop reads and writes to contiguous memory (row-wise access),
+ *       avoiding strided access.
+ *     - Hoisted c[n*i+p] out of the inner loop into a local variable (c_ip),
+ *       eliminating a redundant memory load per inner iteration
  *
  *     1. Mathematical Foundation:
  *         Given any symmetric, positive-definite matrix C, one could factorise such matrix into a
@@ -76,7 +82,7 @@ static int check_symmetry(const double *c, const long n) {
  *         O(n^3) due to the triple nested loops processing n diagonal elements with O(n^2) operations each
  *
  * @param double *c: Pointer to a symmetric positive-definite matrix in row-major order (n x n) stored
- *                   as a 1D array. This is modified in-place to store the lower triangular factor L 
+ *                   as a 1D array. This is modified in-place to store the lower triangular factor L
  *                   and its transpose L^T
  * @param    long n: Dimension of the square matrix (must satisfy 0 < n <= MAX_N)
  *
@@ -113,7 +119,7 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
     // Start time measurement (using omp throughout the project for consistency)
     double t_start = omp_get_wtime(); // Get a wall-clock timestamp
 
-    // Cholesky factorisation: main step
+    // Cholesky factorisation
     for (long p=0; p<n; p++) { // Move along the diagonal of the matrix
 
         // Checks for input requirements
@@ -134,9 +140,12 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
             c[n*i+p]/=diag;
         }
 
-        for (long j=p+1; j<n; j++) { // Update submatrix below-right of the diagonal element
-            for (long i=p+1; i<n; i++) {
-                c[n*i+j] -= c[n*i+p]*c[n*p+j];
+        // v01 Avoid strided read and write
+        for (long i=p+1; i<n; i++) { // Update submatrix below-right of the diagonal element
+            // v01 Hoisting
+            double c_ip = c[n*i+p];
+            for (long j=p+1; j<n; j++) {
+                c[n*i+j] -= c_ip * c[n*p+j];
             }
         }
     }

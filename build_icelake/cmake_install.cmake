@@ -1,4 +1,4 @@
-# Install script for directory: /home/zl656/final_c2/v00
+# Install script for directory: /home/zl656/final_c2/v01
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,17 +44,17 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/zl656/final_c2/v00/build_icelake/src/cmake_install.cmake")
+  include("/home/zl656/final_c2/v01/build_icelake/src/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/zl656/final_c2/v00/build_icelake/benchmark/cmake_install.cmake")
+  include("/home/zl656/final_c2/v01/build_icelake/benchmark/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/zl656/final_c2/v00/build_icelake/test/cmake_install.cmake")
+  include("/home/zl656/final_c2/v01/build_icelake/test/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -65,5 +65,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/zl656/final_c2/v00/build_icelake/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/zl656/final_c2/v01/build_icelake/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
