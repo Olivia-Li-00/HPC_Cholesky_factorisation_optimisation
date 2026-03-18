@@ -28,7 +28,7 @@
 
 #define NUM_REPEATS 5
 
-const long SIZES[] = {100, 500, 1000, 2000, 3000, 4000, 5000};
+const long SIZES[] = {100, 500, 1000, 2000, 3000, 4000, 5000, 8000};
 const int NUM_SIZES = sizeof(SIZES) / sizeof(SIZES[0]);
 
 /**

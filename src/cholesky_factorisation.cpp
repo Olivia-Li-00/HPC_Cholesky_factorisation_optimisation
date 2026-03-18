@@ -2,16 +2,21 @@
  * @file:
  *      cholesky_factorisation.cpp
  * @brief:
- *      Single-thread optimised implementation of Cholesky factorisation algorithm (v0.2)
+ *      Single-thread optimised implementation of Cholesky factorisation algorithm (v0.3)
  *
- *      This file builds on v0.1 with the following optimisation:
- *      - Replaces division by the diagonal element with multiplication by its
- *        reciprocal in the row and column normalisation loops, as multiplication
- *        is cheaper than division.
+ *      This file builds on v0.2 with the following optimisations:
+ *      - Exploits matrix and algorithm symmetry to halve the work: only update the upper triangle (L^T)
+ *        is computed during factorisation, eliminating the separate column update loop and lower triangle of the submatrix update
+ *      - The submatrix update inner loop starts at j=i instead of j=p+1, updating
+ *        only the upper triangle of the submatrix
+ *      - A final copy pass writes the upper triangle to the lower triangle,
+ *        with j-outer/i-inner ordering to prioritise contiguous writes over reads
  *
+ *      Optimisations carried forward from v0.2:
+ *      - Multiplication by reciprocal instead of division
  *      Optimisations carried forward from v0.1:
- *      - Reordered submatrix update loops to avoid strided memory access (read and write)
- *      - Hoisted c[n*i+p] out of the inner loop
+ *      - Reordered submatrix update loops to avoid strided memory access
+ *      - Hoisted j-independent elements out of the j-inner loop
  *
  *      All other aspects (input validation, in-place computation, timing) remain
  *      identical to v0.0. The algorithm has overall O(n^3) complexity.
@@ -62,13 +67,19 @@ static int check_symmetry(const double *c, const long n) {
 /** Cholesky Factorisation Algorithm
  *
  * @brief:
- *     In-place Cholesky factorisation, optimised implementation v0.2
+ *     In-place Cholesky factorisation, optimised implementation v0.3
  *
- *           ***** Improvement compared to v0.1 *****
- *     - Precomputes the reciprocal of the diagonal element (inv_diag = 1.0 / diag)
- *       and replaces all divisions (c[...] /= diag) with multiplications
- *       (c[...] *= inv_diag), reducing the cost of the row and column normalisation
- *       loops since floating-point division is typically slower than multiplication
+ *           ***** Improvement compared to v0.2 *****
+ *     - Exploits symmetry of the input matrix: only computes and updates the
+ *       upper triangle (L^T) during factorisation, removing the separate column
+ *       normalisation loop entirely and the update of the lower triangle of the submatrix update
+ *     - The hoisted variable changes from c[n*i+p] (column element) to c[n*p+i]
+ *       (row element), since only the upper triangle is maintained
+ *     - The submatrix inner loop range changes from j=p+1..n to j=i..n,
+ *       skipping the lower triangle and roughly halving the update work
+ *     - A separate copy pass at the end fills the lower triangle (L) from
+ *       the upper triangle (L^T), using j-outer/i-inner ordering to prioritise
+ *       contiguous writes over contiguous reads
  *
  *     1. Mathematical Foundation:
  *         Given any symmetric, positive-definite matrix C, one could factorise such matrix into a
@@ -79,8 +90,9 @@ static int check_symmetry(const double *c, const long n) {
  *         This function effectively factorises the C matrix by processing one diagonal element at a time.
  *         For each diagonal position p:
  *         - Compute sqrt(C[p,p]) as the new diagonal value
- *         - Normalise the row/column by this diagonal value
- *         - Update the remaining submatrix using outer product elimination
+ *         - Normalise the row by this diagonal value (upper triangle only)
+ *         - Update the remaining upper-triangular submatrix using outer product elimination
+ *         After the main loop, copy the upper triangle to the lower triangle
  *     3. Algorithm Complexity:
  *         O(n^3) due to the triple nested loops processing n diagonal elements with O(n^2) operations each
  *
@@ -137,21 +149,29 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
         c[n*p+p]=diag; // Update diagonal element
         double inv_diag = 1.0 / diag;
 
+        // v03 only keep the row update and remove the column update due to symmetry
+        // v03 only need to update on one side, choose row over column, for contiguous access
         for (long j=p+1; j<n; j++) { // Update row to right of diagonal element
             c[n*p+j]*=inv_diag; // v02 multiplication instead of division
         }
 
-        for (long i=p+1; i<n; i++) { // Update column below diagonal element
-            c[n*i+p]*=inv_diag; // v02 multiplication instead of division
-        }
-
+        // v03 only need to update the upper triangle (L^T) due to symmetry
+        // v03 this means need to update c[n*i+j] using c[n*p+i] not c[n*i+p], hence change the hoisting term
         // v01 Avoid strided read and write
         for (long i=p+1; i<n; i++) { // Update submatrix below-right of the diagonal element
             // v01 Hoisting
-            double c_ip = c[n*i+p];
-            for (long j=p+1; j<n; j++) {
-                c[n*i+j] -= c_ip * c[n*p+j];
+            double c_pi = c[n*p+i];
+            for (long j=i; j<n; j++) {
+                c[n*i+j] -= c_pi * c[n*p+j];
             }
+        }
+    }
+
+    // v03 copy the upper triangle (L^T) to lower triangle (L) directly
+    // v03 j is the outer loop and i is the inner loop: prioritise contiguous write over contiguous read, due to the cost of cache coherence
+    for (long j=1; j<n; j++) {
+        for (long i=0; i<j; i++) {
+            c[n*j+i] = c[n*i+j];
         }
     }
 
