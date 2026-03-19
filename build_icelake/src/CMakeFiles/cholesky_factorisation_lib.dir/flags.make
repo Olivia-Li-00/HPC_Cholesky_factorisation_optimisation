@@ -4,7 +4,7 @@
 # compile CXX with /usr/local/software/spack/spack-views/rocky8-icelake-20220710/intel-oneapi-compilers-2022.1.0/gcc-11.3.0/b6zld2mz7cid27yloxznoidymd7vywwz/compiler/2022.1.0/linux/bin/icpx
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/zl656/final_c2/v04/include
+CXX_INCLUDES = -I/home/zl656/final_c2/v11/include
 
 CXX_FLAGS = -O3 -xHost -std=gnu++17 -fiopenmp
 

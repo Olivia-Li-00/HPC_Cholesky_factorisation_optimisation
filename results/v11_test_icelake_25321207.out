@@ -1,0 +1,302 @@
+Loading rhel8/default-icl
+  Loading requirement: rhel8/slurm singularity/current rhel8/global cuda/11.4
+    vgl/2.5.1/64 intel-oneapi-compilers/2022.1.0/gcc/b6zld2mz ucx/1.15.0
+    intel-oneapi-mpi/2021.6.0/intel/guxuvcpm
+
+==========================================
+Cholesky factorisation - Icelake
+==========================================
+Job ID:              25321207
+Partition:           icelake
+Node:                cpu-q-266
+CPUs available:      76
+Number of tasks:     1
+CPUs per task:       76
+Date:                Wed Mar 18 05:03:55 GMT 2026
+Working Dir:         /home/zl656/final_c2/v11
+==========================================
+Start the program (testing and benchmark)
+==========================================
+==========================================
+Below, errors are expected for testing
+==========================================
+Error: Null pointer passed to cholesky_factorisation, check the memory allocation and initialisation of input matrix.
+Error: Invalid input matrix dimension n=0 (must be > 0).
+Error: Invalid input matrix dimension n=-1 (must be > 0).
+Error: Invalid input matrix dimension n=100001 (exceeds maximum allowed 100000).
+Error: Input matrix is not symmetric.
+Error: Input matrix is not symmetric.
+Error: Matrix is not positive-definite, diagonal elements at [i,j]=[1,1] is 0.000000e+00.
+Error: Matrix is not positive-definite, diagonal elements at [i,j]=[1,1] is -3.000000e+00.
+Error: Matrix is not positive-definite, diagonal elements at [i,j]=[0,0] is -4.000000e+00.
+Error: Matrix is not positive-definite, diagonal elements at [i,j]=[1,1] is 0.000000e+00.
+========================================
+Cholesky factorisation — error case tests
+========================================
+
+Test 1: Null pointer input
+[PASS] Returns -1 for null pointer.
+
+Test 2: n=0
+[PASS] Returns -1 for n=0.
+
+Test 3: n=-1
+[PASS] Returns -1 for n=-1.
+
+Test 4: n=100001 (exceeds maximum)
+[PASS] Returns -1 for n=100001.
+
+Test 5: Non-symmetric matrix
+[PASS] Returns -1 for non-symmetric matrix.
+
+Test 6: Non-symmetric matrix (subtle)
+[PASS] Returns -1 for non-symmetric matrix.
+
+Test 7: Singular matrix
+[PASS] Returns -1 for singular matrix.
+
+Test 8: Indefinite matrix (negative eigenvalue)
+[PASS] Returns -1 for indefinite matrix.
+
+Test 9: Matrix with negative diagonal element
+[PASS] Returns -1 for matrix with negative diagonal.
+
+Test 10: Valid symmetric positive-definite matrix still succeeds (sanity check)
+[PASS] Returns >= 0 for valid symmetric positive-definite matrix.
+
+Test 11: Error cases with multiple threads
+[PASS] Returns -1 for singular matrix with 8 threads.
+[PASS] Returns >= 0 for valid symmetric positive-definite matrix with 8 threads.
+
+========================================
+All error case tests PASSED.
+========================================
+========================================
+Cholesky factorisation correctness tests
+========================================
+
+Test set 1: Cholesky factorisation of the C2 input matrix example from the coursework should match expected output matrix and expected log determinant
+[PASS] Cholesky factorisation succeeded.
+[PASS] All matrix elements computed match expected output matrix.
+[PASS] Log determinant rule satisfied.
+
+Test set 2: Large input matrix reconstruction by matrix multiplication (L * L^T = C)
+[PASS] Cholesky factorisation succeeded.
+Maximum input matrix reconstruction error: 5.551e-16
+[PASS] Input matrix successfully reconstructed.
+[PASS] Log determinant matches reference.
+
+Test set 3: Multi-thread consistency check (log|C| should be identical across thread counts)
+[PASS] Reference log|C| with 1 thread:  -877.1028093966
+[PASS] 2 threads: log|C| = -877.1028093966 (diff = 0.000e+00)
+[PASS] 4 threads: log|C| = -877.1028093966 (diff = 0.000e+00)
+[PASS] 8 threads: log|C| = -877.1028093966 (diff = 0.000e+00)
+
+========================================
+All correctness tests PASSED.
+========================================
+==========================================
+Performance benchmark
+==========================================
+------ schedule=static,32 & threads=1 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       111.610753            15.080022           
+
+Benchmark Complete.
+------ schedule=static,32 & threads=8 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       19.438303             1.523426            
+
+Benchmark Complete.
+------ schedule=static,32 & threads=32 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       12.582102             0.385889            
+
+Benchmark Complete.
+------ schedule=static,32 & threads=56 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       11.069679             0.267170            
+
+Benchmark Complete.
+------ schedule=static,32 & threads=76 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       9.876339              0.332887            
+
+Benchmark Complete.
+------ schedule=dynamic,16 & threads=1 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       111.653103            15.185514           
+
+Benchmark Complete.
+------ schedule=dynamic,16 & threads=8 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       17.037528             0.825168            
+
+Benchmark Complete.
+------ schedule=dynamic,16 & threads=32 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       12.332675             0.295768            
+
+Benchmark Complete.
+------ schedule=dynamic,16 & threads=56 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       11.399070             0.088252            
+
+Benchmark Complete.
+------ schedule=dynamic,16 & threads=76 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       10.900135             0.028289            
+
+Benchmark Complete.
+------ schedule=dynamic,32 & threads=1 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       111.836048            15.526158           
+
+Benchmark Complete.
+------ schedule=dynamic,32 & threads=8 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       17.162247             0.705869            
+
+Benchmark Complete.
+------ schedule=dynamic,32 & threads=32 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       12.481013             0.438897            
+
+Benchmark Complete.
+------ schedule=dynamic,32 & threads=56 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       11.606595             0.270541            
+
+Benchmark Complete.
+------ schedule=dynamic,32 & threads=76 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       11.175527             0.034830            
+
+Benchmark Complete.
+------ schedule=guided,16 & threads=1 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       111.120317            14.076440           
+
+Benchmark Complete.
+------ schedule=guided,16 & threads=8 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       21.699841             0.482393            
+
+Benchmark Complete.
+------ schedule=guided,16 & threads=32 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       16.315452             0.660600            
+
+Benchmark Complete.
+------ schedule=guided,16 & threads=56 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       14.995799             0.076574            
+
+Benchmark Complete.
+------ schedule=guided,16 & threads=76 ------
+OpenMP timer precision: 1.000e-06 seconds.
+For a specific matrix size: n=10000
+The number of repeats per configuration: 5 repeats.
+
+n           Average time(s)       Standard deviation(s)
+-----------------------------------------------------
+10000       14.498527             0.029829            
+
+Benchmark Complete.
+
+Jobscript completed.
