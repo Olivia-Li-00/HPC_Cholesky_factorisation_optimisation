@@ -1,0 +1,121 @@
+\hypertarget{cholesky__factorisation_8cpp}{}\section{src/cholesky\+\_\+factorisation.cpp File Reference}
+\label{cholesky__factorisation_8cpp}\index{src/cholesky\+\_\+factorisation.\+cpp@{src/cholesky\+\_\+factorisation.\+cpp}}
+
+
+\+: Cache-\/blocked, multi-\/threads optimised Cholesky factorisation (v1.\+2)  
+
+
+{\ttfamily \#include \char`\"{}cholesky\+\_\+factorisation.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$cmath$>$}\newline
+{\ttfamily \#include $<$cstdio$>$}\newline
+{\ttfamily \#include $<$omp.\+h$>$}\newline
+{\ttfamily \#include $<$algorithm$>$}\newline
+Include dependency graph for cholesky\+\_\+factorisation.\+cpp\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{cholesky__factorisation_8cpp__incl}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{cholesky__factorisation_8cpp_a4885d311d80994fd106f44c07cec9cc4}{M\+A\+X\+\_\+N}}~100000
+\item 
+\#define \mbox{\hyperlink{cholesky__factorisation_8cpp_a7267bff123781167d8b6ec0971f70fff}{S\+Y\+M\+M\+E\+T\+R\+Y\+\_\+\+T\+OL}}~1e-\/10
+\item 
+\#define \mbox{\hyperlink{cholesky__factorisation_8cpp_a580b8cd39090fb5b561d979824eb8b6e}{F\+L\+O\+A\+T\+\_\+\+T\+OL}}~1e-\/15
+\item 
+\#define \mbox{\hyperlink{cholesky__factorisation_8cpp_a111da81ae5883147168bbb8366377b10}{B}}~64
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \mbox{\hyperlink{cholesky__factorisation_8cpp_a45db45ebddb15604123eb7509c6da47f}{cholesky\+\_\+factorisation}} (double $\ast$\+\_\+\+\_\+restrict\+\_\+\+\_\+ c, const long n)
+\begin{DoxyCompactList}\small\item\em \+: In-\/place Cholesky factorisation, cache-\/blocked multi-\/threads optimised implementation v1.\+2 \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\+: Cache-\/blocked, multi-\/threads optimised Cholesky factorisation (v1.\+2) 
+
+\mbox{\hyperlink{cholesky__factorisation_8cpp}{cholesky\+\_\+factorisation.\+cpp}} This file builds on v1.\+1 by introducing cache blocking via a three-\/step blocked outer loop stepping by block size B along the diagonal\+:
+\begin{DoxyItemize}
+\item Step 1\+: Factorise the B x B diagonal block (upper triangle only)
+\item Step 2\+: Update the panel to the right of the diagonal block with static scheduling due to uniform workload per column
+\item Step 3\+: Trailing submatrix update, with runtime scheduling via O\+M\+P\+\_\+\+S\+C\+H\+E\+D\+U\+LE to handle flexibility to test for different schedulers due to varied workload
+\end{DoxyItemize}
+
+Optimisations carried forward from v1.\+1\+:
+\begin{DoxyItemize}
+\item Open\+MP multi-\/thread parallelisation Optimisations carried forward from v0.\+4\+:
+\item S\+I\+MD pragmas on inner loops for vectorisation
+\item \+\_\+\+\_\+builtin\+\_\+expect on error path for branch prediction Optimisations carried forward from v0.\+3\+:
+\item Symmetry exploitation\+: only upper triangle updated, with final copy pass Optimisations carried forward from v0.\+2\+:
+\item Multiplication by reciprocal instead of division Optimisations carried forward from v0.\+1\+:
+\item Reordered submatrix update loops to avoid strided memory access
+\item Hoisted j-\/independent elements out of the j-\/inner loop
+\end{DoxyItemize}
+
+Algorithm complexity remains O(n$^\wedge$3). 
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{cholesky__factorisation_8cpp_a111da81ae5883147168bbb8366377b10}\label{cholesky__factorisation_8cpp_a111da81ae5883147168bbb8366377b10}} 
+\index{cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}!B@{B}}
+\index{B@{B}!cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}}
+\subsubsection{\texorpdfstring{B}{B}}
+{\footnotesize\ttfamily \#define B~64}
+
+\mbox{\Hypertarget{cholesky__factorisation_8cpp_a580b8cd39090fb5b561d979824eb8b6e}\label{cholesky__factorisation_8cpp_a580b8cd39090fb5b561d979824eb8b6e}} 
+\index{cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}!F\+L\+O\+A\+T\+\_\+\+T\+OL@{F\+L\+O\+A\+T\+\_\+\+T\+OL}}
+\index{F\+L\+O\+A\+T\+\_\+\+T\+OL@{F\+L\+O\+A\+T\+\_\+\+T\+OL}!cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}}
+\subsubsection{\texorpdfstring{F\+L\+O\+A\+T\+\_\+\+T\+OL}{FLOAT\_TOL}}
+{\footnotesize\ttfamily \#define F\+L\+O\+A\+T\+\_\+\+T\+OL~1e-\/15}
+
+\mbox{\Hypertarget{cholesky__factorisation_8cpp_a4885d311d80994fd106f44c07cec9cc4}\label{cholesky__factorisation_8cpp_a4885d311d80994fd106f44c07cec9cc4}} 
+\index{cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}!M\+A\+X\+\_\+N@{M\+A\+X\+\_\+N}}
+\index{M\+A\+X\+\_\+N@{M\+A\+X\+\_\+N}!cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}}
+\subsubsection{\texorpdfstring{M\+A\+X\+\_\+N}{MAX\_N}}
+{\footnotesize\ttfamily \#define M\+A\+X\+\_\+N~100000}
+
+\mbox{\Hypertarget{cholesky__factorisation_8cpp_a7267bff123781167d8b6ec0971f70fff}\label{cholesky__factorisation_8cpp_a7267bff123781167d8b6ec0971f70fff}} 
+\index{cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}!S\+Y\+M\+M\+E\+T\+R\+Y\+\_\+\+T\+OL@{S\+Y\+M\+M\+E\+T\+R\+Y\+\_\+\+T\+OL}}
+\index{S\+Y\+M\+M\+E\+T\+R\+Y\+\_\+\+T\+OL@{S\+Y\+M\+M\+E\+T\+R\+Y\+\_\+\+T\+OL}!cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}}
+\subsubsection{\texorpdfstring{S\+Y\+M\+M\+E\+T\+R\+Y\+\_\+\+T\+OL}{SYMMETRY\_TOL}}
+{\footnotesize\ttfamily \#define S\+Y\+M\+M\+E\+T\+R\+Y\+\_\+\+T\+OL~1e-\/10}
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{cholesky__factorisation_8cpp_a45db45ebddb15604123eb7509c6da47f}\label{cholesky__factorisation_8cpp_a45db45ebddb15604123eb7509c6da47f}} 
+\index{cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}!cholesky\+\_\+factorisation@{cholesky\+\_\+factorisation}}
+\index{cholesky\+\_\+factorisation@{cholesky\+\_\+factorisation}!cholesky\+\_\+factorisation.\+cpp@{cholesky\+\_\+factorisation.\+cpp}}
+\subsubsection{\texorpdfstring{cholesky\+\_\+factorisation()}{cholesky\_factorisation()}}
+{\footnotesize\ttfamily double cholesky\+\_\+factorisation (\begin{DoxyParamCaption}\item[{double $\ast$\+\_\+\+\_\+restrict\+\_\+\+\_\+}]{c,  }\item[{const long}]{n }\end{DoxyParamCaption})}
+
+
+
+\+: In-\/place Cholesky factorisation, cache-\/blocked multi-\/threads optimised implementation v1.\+2 
+
+Cholesky Factorisation Algorithm \begin{DoxyVerb}     ***** Improvement compared to v1.1 *****
+\end{DoxyVerb}
+
+\begin{DoxyItemize}
+\item Introduces cache blocking\+: the outer loop iterates by block size B, splitting each block step into three processes (see file header).
+\end{DoxyItemize}
+\begin{DoxyEnumerate}
+\item Mathematical Foundation\+: Given any symmetric, positive-\/definite matrix C, one could factorise such matrix into a lower-\/upper form\+: C = L L$^\wedge$T where L is a lower-\/triangular matrix and L$^\wedge$T is its symmetric transpose
+\item Algorithm Description\+: This function factorises the C matrix by processing one B x B diagonal block at a time. Step 1 factorises the block, Step 2 updates the panel to its right, and Step 3 updates the trailing submatrix using all B panel rows. After the blocked loop, the upper triangle is copied to the lower triangle.
+\item Algorithm Complexity\+: O(n$^\wedge$3) due to the triple nested loops; improves cache utilisation and runtime.
+\end{DoxyEnumerate}
+
+
+\begin{DoxyParams}{Parameters}
+{\em c} & Pointer to a symmetric positive-\/definite matrix in row-\/major order (n x n) stored as a 1D array. This is modified in-\/place to store the lower triangular factor L and its transpose L$^\wedge$T \\
+\hline
+{\em n} & Dimension of the square matrix (must satisfy 0 $<$ n $<$= M\+A\+X\+\_\+N)\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\+: On success\+: Wall-\/clock time (seconds) taken for factorisation On failure\+: -\/1.\+0 with appropriate error message printed to stderr 
+\end{DoxyReturn}

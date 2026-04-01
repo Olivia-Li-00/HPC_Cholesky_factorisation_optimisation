@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcholesky_factorisation_lib.a CMakeFiles/cholesky_factorisation_lib.dir/cholesky_factorisation.cpp.o
+/usr/bin/ranlib libcholesky_factorisation_lib.a

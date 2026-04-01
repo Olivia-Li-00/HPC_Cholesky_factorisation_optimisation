@@ -54,8 +54,8 @@
  *      This function checks whether a given square matrix is symmetric by comparing
  *      elements c[i,j] and c[j,i] for all i < j. A combined absolute/relative tolerance check is performed.
  *
- * @param const double *c: Pointer to the matrix in row-major order (n x n), stored as an 1D array
- * @param    const long n: Dimension of the square matrix
+ * @param c Pointer to the matrix in row-major order (n x n), stored as an 1D array
+ * @param n Dimension of the square matrix
  *
  * @return:  0 if the matrix is symmetric within tolerance 
  *          -1 otherwise
@@ -95,10 +95,10 @@ static int check_symmetry(const double *c, const long n) {
  *     3. Algorithm Complexity:
  *         O(n^3) due to the triple nested loops; improves cache utilisation and runtime.
  *
- * @param double *c: Pointer to a symmetric positive-definite matrix in row-major order (n x n) stored
+ * @param c Pointer to a symmetric positive-definite matrix in row-major order (n x n) stored
  *                   as a 1D array. This is modified in-place to store the lower triangular factor L
  *                   and its transpose L^T
- * @param    long n: Dimension of the square matrix (must satisfy 0 < n <= MAX_N)
+ * @param n Dimension of the square matrix (must satisfy 0 < n <= MAX_N)
  *
  * @return: On success: Wall-clock time (seconds) taken for factorisation
  *          On failure: -1.0 with appropriate error message printed to stderr

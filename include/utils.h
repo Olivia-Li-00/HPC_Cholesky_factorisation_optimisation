@@ -23,9 +23,9 @@
  *      Compute a correlation value between two indices as defined from the coursework 
  *      for populating symmetric positive-definite correlation matrices 
  *
- * @param double x: First index position
- * @param double y: Second index position
- * @param double s: Matrix size (s x s)
+ * @param x First index position
+ * @param y Second index position
+ * @param s Matrix size (s x s)
  *
  * @return:
  *      A double representing the correlation.
@@ -42,8 +42,8 @@ inline double corr(double x, double y, double s) {
  *      correlation function for all (i, j) pairs and overwriting
  *      the diagonal entries in the loop.
  *
- * @param double *c: Pointer to pre-allocated n*n array of doubles (row-major 1D flattened array)
- * @param   long  n: Dimension of the square matrix
+ * @param c Pointer to pre-allocated n*n array of doubles (row-major 1D flattened array)
+ * @param n Dimension of the square matrix
  *
  * @return:
  *      void: the matrix is written in-place
@@ -68,8 +68,8 @@ inline void populate_matrix(double *c, long n) {
  *      applied to the input matrix, and used to compare against the
  *      original matrix as a correctness check.
  *
- * @param const double *m: Pointer to the n*n Cholesky factor (row-major 1D flattened array)
- * @param         long  n: Dimension of the square matrix
+ * @param m Pointer to the n*n Cholesky factor (row-major 1D flattened array)
+ * @param n Dimension of the square matrix
  *
  * @return:
  *      The log-determinant of the original matrix C as a double

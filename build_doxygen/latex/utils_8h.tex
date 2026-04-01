@@ -1,0 +1,108 @@
+\hypertarget{utils_8h}{}\section{include/utils.h File Reference}
+\label{utils_8h}\index{include/utils.\+h@{include/utils.\+h}}
+
+
+\+: Shared utility for correlation matrix generation and validation  
+
+
+{\ttfamily \#include $<$cmath$>$}\newline
+Include dependency graph for utils.\+h\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=165pt]{utils_8h__incl}
+\end{center}
+\end{figure}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \mbox{\hyperlink{utils_8h_aaca27d061c7566d622aab7a201aee56c}{corr}} (double x, double y, double s)
+\begin{DoxyCompactList}\small\item\em \+: Compute a correlation value between two indices as defined from the coursework for populating symmetric positive-\/definite correlation matrices \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{utils_8h_ab1c837c2606c74d5625c22cb43c89167}{populate\+\_\+matrix}} (double $\ast$c, long n)
+\begin{DoxyCompactList}\small\item\em \+: Populate a symmetric positive-\/definite correlation matrix \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{utils_8h_a55c1cbe63d7afd1592cc2ead8b77cae5}{compute\+\_\+log\+\_\+det}} (const double $\ast$m, long n)
+\begin{DoxyCompactList}\small\item\em \+: Compute the log-\/determinant of a matrix from its Cholesky factor \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\+: Shared utility for correlation matrix generation and validation 
+
+\mbox{\hyperlink{utils_8h}{utils.\+h}} Provides helper functions commonly used across the project for\+:
+\begin{DoxyEnumerate}
+\item Computing pairwise correlation values
+\item Populating symmetric positive-\/definite correlation matrices
+\item Computing log-\/determinants from Cholesky-\/factorised matrices as a correctness check (using Equation 4 from the coursework)
+\end{DoxyEnumerate}
+
+All functions are defined as described from the coursework. 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{utils_8h_a55c1cbe63d7afd1592cc2ead8b77cae5}\label{utils_8h_a55c1cbe63d7afd1592cc2ead8b77cae5}} 
+\index{utils.\+h@{utils.\+h}!compute\+\_\+log\+\_\+det@{compute\+\_\+log\+\_\+det}}
+\index{compute\+\_\+log\+\_\+det@{compute\+\_\+log\+\_\+det}!utils.\+h@{utils.\+h}}
+\subsubsection{\texorpdfstring{compute\+\_\+log\+\_\+det()}{compute\_log\_det()}}
+{\footnotesize\ttfamily double compute\+\_\+log\+\_\+det (\begin{DoxyParamCaption}\item[{const double $\ast$}]{m,  }\item[{long}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\+: Compute the log-\/determinant of a matrix from its Cholesky factor 
+
+Given a lower-\/triangular Cholesky factor L (where C = L $\ast$ L$^\wedge$T), computes log(det(\+C)) using Equation 4 from the coursework.
+
+Intended to be called after \mbox{\hyperlink{cholesky__factorisation_8cpp_a45db45ebddb15604123eb7509c6da47f}{cholesky\+\_\+factorisation()}} has been applied to the input matrix, and used to compare against the original matrix as a correctness check.
+
+
+\begin{DoxyParams}{Parameters}
+{\em m} & Pointer to the n$\ast$n Cholesky factor (row-\/major 1D flattened array) \\
+\hline
+{\em n} & Dimension of the square matrix\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\+: The log-\/determinant of the original matrix C as a double 
+\end{DoxyReturn}
+\mbox{\Hypertarget{utils_8h_aaca27d061c7566d622aab7a201aee56c}\label{utils_8h_aaca27d061c7566d622aab7a201aee56c}} 
+\index{utils.\+h@{utils.\+h}!corr@{corr}}
+\index{corr@{corr}!utils.\+h@{utils.\+h}}
+\subsubsection{\texorpdfstring{corr()}{corr()}}
+{\footnotesize\ttfamily double corr (\begin{DoxyParamCaption}\item[{double}]{x,  }\item[{double}]{y,  }\item[{double}]{s }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\+: Compute a correlation value between two indices as defined from the coursework for populating symmetric positive-\/definite correlation matrices 
+
+
+\begin{DoxyParams}{Parameters}
+{\em x} & First index position \\
+\hline
+{\em y} & Second index position \\
+\hline
+{\em s} & Matrix size (s x s)\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\+: A double representing the correlation. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{utils_8h_ab1c837c2606c74d5625c22cb43c89167}\label{utils_8h_ab1c837c2606c74d5625c22cb43c89167}} 
+\index{utils.\+h@{utils.\+h}!populate\+\_\+matrix@{populate\+\_\+matrix}}
+\index{populate\+\_\+matrix@{populate\+\_\+matrix}!utils.\+h@{utils.\+h}}
+\subsubsection{\texorpdfstring{populate\+\_\+matrix()}{populate\_matrix()}}
+{\footnotesize\ttfamily void populate\+\_\+matrix (\begin{DoxyParamCaption}\item[{double $\ast$}]{c,  }\item[{long}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\+: Populate a symmetric positive-\/definite correlation matrix 
+
+Fills an n x n matrix stored in row-\/major order as a 1D flattened array, using the correlation function for all (i, j) pairs and overwriting the diagonal entries in the loop.
+
+
+\begin{DoxyParams}{Parameters}
+{\em c} & Pointer to pre-\/allocated n$\ast$n array of doubles (row-\/major 1D flattened array) \\
+\hline
+{\em n} & Dimension of the square matrix\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\+: void\+: the matrix is written in-\/place 
+\end{DoxyReturn}
