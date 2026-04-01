@@ -12,7 +12,7 @@
 #SBATCH --cpus-per-task=76
 #SBATCH --time=04:00:00
 #SBATCH --mail-type=NONE
-#SBATCH --output=results/v11_optimal_icelake_%j.out
+#SBATCH --output=results/v12_optimal_icelake_%j.out
 
 #! Notes:
 #! The Ice Lake (icelake) nodes have 76 CPUs (cores) each and 3380 MiB of memory per CPU.

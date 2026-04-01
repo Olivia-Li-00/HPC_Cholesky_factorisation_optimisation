@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zl656/final_c2/v11
+CMAKE_SOURCE_DIR = /home/zl656/coursework_o3_xhost/t76
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zl656/final_c2/v11/build_icelake
+CMAKE_BINARY_DIR = /home/zl656/coursework_o3_xhost/t76/build_icelake
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zl656/final_c2/v11/build_icelake/CMakeFiles /home/zl656/final_c2/v11/build_icelake//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/zl656/coursework_o3_xhost/t76/build_icelake/CMakeFiles /home/zl656/coursework_o3_xhost/t76/build_icelake//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zl656/final_c2/v11/build_icelake/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/zl656/coursework_o3_xhost/t76/build_icelake/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -168,6 +168,19 @@ test_error_cases/fast:
 	$(MAKE) $(MAKESILENT) -f test/CMakeFiles/test_error_cases.dir/build.make test/CMakeFiles/test_error_cases.dir/build
 .PHONY : test_error_cases/fast
 
+#=============================================================================
+# Target rules for targets named example
+
+# Build rule for target.
+example: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 example
+.PHONY : example
+
+# fast build rule for target.
+example/fast:
+	$(MAKE) $(MAKESILENT) -f example/CMakeFiles/example.dir/build.make example/CMakeFiles/example.dir/build
+.PHONY : example/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -178,6 +191,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... benchmark"
 	@echo "... cholesky_factorisation_lib"
+	@echo "... example"
 	@echo "... test_correctness"
 	@echo "... test_error_cases"
 .PHONY : help

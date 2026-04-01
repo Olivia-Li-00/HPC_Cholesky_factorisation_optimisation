@@ -2,22 +2,21 @@
  * @file:
  *      cholesky_factorisation.cpp
  * @brief:
- *      Multi-thread optimised implementation of Cholesky factorisation algorithm (v1.1)
+ *      Cache-blocked, multi-threads optimised Cholesky factorisation (v1.2)
  *
- *      This file builds on v0.4 by introducing OpenMP multi-thread parallelisation:
- *      - A single #pragma omp parallel region wraps the entire factorisation
- *      - The diagonal update is executed by one thread via #pragma omp single
- *      - The row normalisation loop is parallelised with #pragma omp for simd
- *        using static scheduling (uniform workload per iteration)
- *      - The submatrix update loop is parallelised with #pragma omp for using
- *        runtime-configurable scheduling via OMP_SCHEDULE
- *      - The symmetry copy is parallelised with #pragma omp for using
- *        runtime-configurable scheduling via OMP_SCHEDULE
- *      - A shared error_flag replaces direct return for positive-definiteness
- *        failures, since return is not permitted inside a parallel region
+ *      This file builds on v1.1 by introducing cache blocking via a three-step
+ *      blocked outer loop stepping by block size B along the diagonal:
+ *      - Step 1: Factorise the B x B diagonal block (upper triangle only)
+ *      - Step 2: Update the panel to the right of the diagonal block
+ *        with static scheduling due to uniform workload per column
+ *      - Step 3: Trailing submatrix update, with runtime scheduling
+ *        via OMP_SCHEDULE to handle flexibility to test for different schedulers due to varied workload
  *
+ *      Optimisations carried forward from v1.1:
+ *      - OpenMP multi-thread parallelisation
  *      Optimisations carried forward from v0.4:
- *      - SIMD pragmas on inner loops for vectorisation and __builtin_expect on error path to help branch prediction
+ *      - SIMD pragmas on inner loops for vectorisation
+ *      - __builtin_expect on error path for branch prediction
  *      Optimisations carried forward from v0.3:
  *      - Symmetry exploitation: only upper triangle updated, with final copy pass
  *      Optimisations carried forward from v0.2:
@@ -26,14 +25,14 @@
  *      - Reordered submatrix update loops to avoid strided memory access
  *      - Hoisted j-independent elements out of the j-inner loop
  *
- *      All other aspects (input validation, in-place computation, timing) remain
- *      identical to v0.0. The algorithm has overall O(n^3) complexity.
+ *      Algorithm complexity remains O(n^3).
  */
 
 #include "cholesky_factorisation.h"
 #include <cmath>
 #include <cstdio>
 #include <omp.h>
+#include <algorithm>
 
 // Maximum matrix dimension specified in the coursework pdf
 #define MAX_N 100000
@@ -43,6 +42,9 @@
 
 // Floating point tolerance
 #define FLOAT_TOL 1e-15
+
+// v1.2 Block size for cache blocking
+#define B 64
 
 /** Check Symmetry
  *
@@ -74,25 +76,11 @@ static int check_symmetry(const double *c, const long n) {
 /** Cholesky Factorisation Algorithm
  *
  * @brief:
- *     In-place Cholesky factorisation, multi-thread optimised implementation v1.1
+ *     In-place Cholesky factorisation, cache-blocked multi-threads optimised implementation v1.2
  *
- *           ***** Improvement compared to v0.4 *****
- *     - Introduces OpenMP multi-thread parallelisation within a single
- *       parallel region that persists across all diagonal steps
- *     - The diagonal element update (sqrt, reciprocal) is executed by a
- *       single thread via #pragma omp single; the implicit barrier ensures
- *       all threads see the updated values before proceeding
- *     - The row normalisation is distributed across threads with
- *       #pragma omp for simd schedule(static), combining SIMD (data-level) and thread-level 
- *       parallelism with static scheduling due to uniform workload
- *     - The submatrix update is distributed with #pragma omp for
- *       schedule(runtime), allowing the schedule to be tuned at
- *       runtime via the OMP_SCHEDULE environment variable
- *     - The symmetry copy is similarly parallelised with #pragma omp for
- *       schedule(runtime) with runtime scheduling via environment variable
- *     - A shared error_flag variable replaces direct return -1.0 for
- *       non-positive-definite detection, since return statements are not
- *       permitted inside OpenMP parallel regions
+ *           ***** Improvement compared to v1.1 *****
+ *     - Introduces cache blocking: the outer loop iterates by block size B,
+ *        splitting each block step into three processes (see file header).
  *
  *     1. Mathematical Foundation:
  *         Given any symmetric, positive-definite matrix C, one could factorise such matrix into a
@@ -100,14 +88,12 @@ static int check_symmetry(const double *c, const long n) {
  *         C = L L^T
  *         where L is a lower-triangular matrix and L^T is its symmetric transpose
  *     2. Algorithm Description:
- *         This function effectively factorises the C matrix by processing one diagonal element at a time.
- *         For each diagonal position p:
- *         - Compute sqrt(C[p,p]) as the new diagonal value (single thread)
- *         - Normalise the row by this diagonal value (upper triangle only, multi threads)
- *         - Update the remaining upper-triangular submatrix using outer product elimination (multi threads)
- *         After the main loop, copy the upper triangle to the lower triangle (multi-threads)
+ *         This function factorises the C matrix by processing one B x B diagonal block
+ *         at a time. Step 1 factorises the block, Step 2 updates the panel to its right, and Step 3
+ *         updates the trailing submatrix using all B panel rows. After the blocked loop,
+ *         the upper triangle is copied to the lower triangle.
  *     3. Algorithm Complexity:
- *         O(n^3) due to the triple nested loops processing n diagonal elements with O(n^2) operations each
+ *         O(n^3) due to the triple nested loops; improves cache utilisation and runtime.
  *
  * @param double *c: Pointer to a symmetric positive-definite matrix in row-major order (n x n) stored
  *                   as a 1D array. This is modified in-place to store the lower triangular factor L
@@ -144,86 +130,91 @@ double cholesky_factorisation(double *__restrict__ c, const long n) {
         return -1.0;
     }
 
-    // v11 shared variable
-    double diag;
-    double inv_diag;
-    // v11 shared error flag
-    int error_flag = 0;
-
     // Start time measurement (using omp throughout the project for consistency)
     double t_start = omp_get_wtime(); // Get a wall-clock timestamp
 
-    // v11 OpenMP multi-thread parallelisation
-    #pragma omp parallel
-    {
-        // Cholesky factorisation
-        for (long p=0; p<n; p++) { // Move along the diagonal of the matrix
+    // v12 Blocked outer loop, with block size B
+    for (long p0 = 0; p0 < n; p0 += B) {
+        long pb = std::min((long)B, n - p0); // pb: actual block size
 
-            // v11 only one thread executes each diagonal update
-            #pragma omp single
-            {
-                // v11 using error_flag since can't use return -1.0
-                // Checks for input requirements
-                // 4) Input matrix must be positive-definite
-                // v04 to help with branch prediction: use __builtin_expect with argument 0 (the input will likely to be a positive definite matrix)
-                if (__builtin_expect(c[p*n+p] < FLOAT_TOL, 0)) {
-                    fprintf(stderr, "Error: Matrix is not positive-definite, diagonal elements at [i,j]=[%ld,%ld] is %.6e.\n", p, p, c[p*n+p]);
-                    error_flag = 1;
-                }
-                if (!error_flag) {
-                    // v02 multiplication instead of division
-                    diag=sqrt(c[p*n+p]);
-                    c[n*p+p]=diag; // Update diagonal element
-                    inv_diag = 1.0 / diag;
-                }
-            }
-            if (error_flag) break;
+        // Step 1: Update the small pb x pb diagonal block (still only the upper triangle)
+        for (long k = 0; k < pb; k++) { // k: local index within the current block
+            long gk = p0 + k; // gk: global index
 
-            // v11 OpenMP for loop together with simd
-            // v04 OpenMP pragma for simd vectorisation
-            // v03 only keep the row update and remove the column update due to symmetry
-            // v03 only need to update on one side, choose row over column, for contiguous access
-            #pragma omp for simd schedule(static) // static clause is used, as workload per iteration is the same
-            for (long j=p+1; j<n; j++) { // Update row to right of diagonal element
-                c[n*p+j]*=inv_diag; // v02 multiplication instead of division
+            if (__builtin_expect(c[gk*n + gk] < FLOAT_TOL, 0)) {
+                fprintf(stderr, "Error: Matrix is not positive-definite at [%ld,%ld] = %.6e.\n", gk, gk, c[gk*n+gk]);
+                return -1.0;
             }
-            #pragma omp barrier // Barrier for all threads at the row update, implict barrier probably already exists, but I implement it explictly just in case
+            // diagonal update
+            double diag = sqrt(c[gk*n + gk]);
+            c[gk*n + gk] = diag;
+            double inv_diag = 1.0 / diag;
 
-            // v11 OpenMP for loop
-            // v03 only need to update the upper triangle (L^T) due to symmetry
-            // v03 this means need to update c[n*i+j] using c[n*p+i] not c[n*i+p], hence change the hoisting term
-            // v01 Avoid strided read and write
-            #pragma omp for schedule(runtime) // scheduling will be set in the environment variable and will be tested, since there are varied workloads
-            for (long i=p+1; i<n; i++) { // Update submatrix below-right of the diagonal element
-                // v01 Hoisting
-                double c_pi = c[n*p+i];
-                // v04 OpenMP pragma for simd vectorisation
-                #pragma omp simd
-                for (long j=i; j<n; j++) {
-                    c[n*i+j] -= c_pi * c[n*p+j];
-                }
+            // Row update
+            for (long j = gk+1; j < p0+pb; j++) {
+                c[gk*n + j] *= inv_diag;
             }
-            #pragma omp barrier // Barrier for all threads at the submatrix update, implict barrier probably already exists, but I implement it explictly just in case
-        }
-        
-        // v11 Didn't add if (!error_flag) condition here to optimise the runtime performance, if the error_flag = 1, then it the function will return -1.0 at the end anyway
-        // v11 OpenMP for loop
-        // v03 copy the upper triangle (L^T) to lower triangle (L) directly
-        // v03 j is the outer loop and i is the inner loop: prioritise contiguous write over contiguous read, due to the cost of cache coherence
-        #pragma omp for schedule(runtime) // scheduling will be set in the environment variable and will be tested, since there are varied workloads
-        for (long j=1; j<n; j++) {
-            // v04 OpenMP pragma for simd vectorisation
-            #pragma omp simd
-            for (long i=0; i<j; i++) {
-                c[n*j+i] = c[n*i+j];
+
+            // Submatrix update
+            for (long i = gk+1; i < p0+pb; i++) {
+                double c_pi = c[gk*n + i];
+                for (long j = i; j < p0+pb; j++) {
+                    c[i*n + j] -= c_pi * c[gk*n + j];
+                }
             }
         }
-        #pragma omp barrier // Barrier for all threads for the symmetry copy step, implict barrier probably already exists, but I implement it explictly just in case
-    } // v11 OpenMP multi-threads parallel region ends here
 
-    // v11 if the matrix is not positive definite, return -1.0
-    if (error_flag) return -1.0;
+        // precompute inverse diagonals for step 2
+        double inv_diags[B];
+        for (long k = 0; k < pb; k++) {
+            inv_diags[k] = 1.0 / c[(p0+k)*n + (p0+k)];
+        }
 
+        // OpenMP multi-thread parallelelisation for step 2 and step 3: higher workload, benefit from parallelisation
+        #pragma omp parallel
+        {
+            // Step 2: Update the panel to the right of the diagonal block
+            #pragma omp for schedule(static) // static scheduler can be used, due to uniform workload
+            for (long j = p0+pb; j < n; j++) { // iterate each column in the panel
+                for (long k = 0; k < pb; k++) { // iterate each row in the panel // k local index
+                    long gk = p0 + k; // gk global index
+
+                    c[gk*n + j] *= inv_diags[k]; // firstly being normalised by inverse diagonal
+                    double c_gk_j = c[gk*n + j];
+
+                    for (long kk = gk+1; kk < p0+pb; kk++) { // then update rows below it within the same panel column j
+                        c[kk*n + j] -= c[gk*n + kk] * c_gk_j;
+                    }
+                }
+            }
+            // implicit barrier for all threads at the end of step 2
+
+            // Step 3: Update the trailing submatrix (the submatrix below both the diagonal block and the panel to the right of the diagonal block) (still upper triangle only)
+            #pragma omp for schedule(runtime) // scheduler defined by environment variable. If have more time, should use OMP_SCHEDULE environment variable to test which scheduler configuration works best, since there are varied workload
+            for (long i = p0+pb; i < n; i++) { // row index
+
+                for (long k = 0; k < pb; k++) {
+                    double c_pi = c[(p0+k)*n + i];
+                    #pragma omp simd // v04 OpenMP pragma for simd vectorisation
+                    for (long j = i; j < n; j++) {
+                        c[i*n + j] -= c_pi * c[(p0+k)*n + j];
+                    }
+                }
+            }
+            // Implicit barrier for all threads
+
+        } // End of parallel region
+
+    } // End blocked outer loop
+
+    // OpenMP multi-threads parallelisation for the final copy of the upper triangle to the lower triangle directly
+    #pragma omp parallel for schedule(runtime) // scheduler defined by environment variable. If have more time, should use OMP_SCHEDULE environment variable to test which scheduler configuration works best
+    for (long j = 1; j < n; j++) {
+        #pragma omp simd // v04 OpenMP pragma for simd vectorisation
+        for (long i = 0; i < j; i++) {
+            c[n*j + i] = c[n*i + j];
+        }
+    }
 
     // End time measurement and return wall-clock time spent
     double t_end = omp_get_wtime(); // Get another wall-clock timestamp here

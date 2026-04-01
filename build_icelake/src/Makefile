@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zl656/final_c2/v11
+CMAKE_SOURCE_DIR = /home/zl656/coursework_o3_xhost/t76
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zl656/final_c2/v11/build_icelake
+CMAKE_BINARY_DIR = /home/zl656/coursework_o3_xhost/t76/build_icelake
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,14 +87,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/zl656/final_c2/v11/build_icelake && $(CMAKE_COMMAND) -E cmake_progress_start /home/zl656/final_c2/v11/build_icelake/CMakeFiles /home/zl656/final_c2/v11/build_icelake/src//CMakeFiles/progress.marks
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zl656/final_c2/v11/build_icelake/CMakeFiles 0
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(CMAKE_COMMAND) -E cmake_progress_start /home/zl656/coursework_o3_xhost/t76/build_icelake/CMakeFiles /home/zl656/coursework_o3_xhost/t76/build_icelake/src//CMakeFiles/progress.marks
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/zl656/coursework_o3_xhost/t76/build_icelake/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
 .PHONY : clean
 
 # The main clean target
@@ -103,22 +103,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/zl656/final_c2/v11/build_icelake && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 src/CMakeFiles/cholesky_factorisation_lib.dir/rule:
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/cholesky_factorisation_lib.dir/rule
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/cholesky_factorisation_lib.dir/rule
 .PHONY : src/CMakeFiles/cholesky_factorisation_lib.dir/rule
 
 # Convenience name for target.
@@ -127,7 +127,7 @@ cholesky_factorisation_lib: src/CMakeFiles/cholesky_factorisation_lib.dir/rule
 
 # fast build rule for target.
 cholesky_factorisation_lib/fast:
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/cholesky_factorisation_lib.dir/build.make src/CMakeFiles/cholesky_factorisation_lib.dir/build
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/cholesky_factorisation_lib.dir/build.make src/CMakeFiles/cholesky_factorisation_lib.dir/build
 .PHONY : cholesky_factorisation_lib/fast
 
 cholesky_factorisation.o: cholesky_factorisation.cpp.o
@@ -135,7 +135,7 @@ cholesky_factorisation.o: cholesky_factorisation.cpp.o
 
 # target to build an object file
 cholesky_factorisation.cpp.o:
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/cholesky_factorisation_lib.dir/build.make src/CMakeFiles/cholesky_factorisation_lib.dir/cholesky_factorisation.cpp.o
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/cholesky_factorisation_lib.dir/build.make src/CMakeFiles/cholesky_factorisation_lib.dir/cholesky_factorisation.cpp.o
 .PHONY : cholesky_factorisation.cpp.o
 
 cholesky_factorisation.i: cholesky_factorisation.cpp.i
@@ -143,7 +143,7 @@ cholesky_factorisation.i: cholesky_factorisation.cpp.i
 
 # target to preprocess a source file
 cholesky_factorisation.cpp.i:
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/cholesky_factorisation_lib.dir/build.make src/CMakeFiles/cholesky_factorisation_lib.dir/cholesky_factorisation.cpp.i
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/cholesky_factorisation_lib.dir/build.make src/CMakeFiles/cholesky_factorisation_lib.dir/cholesky_factorisation.cpp.i
 .PHONY : cholesky_factorisation.cpp.i
 
 cholesky_factorisation.s: cholesky_factorisation.cpp.s
@@ -151,7 +151,7 @@ cholesky_factorisation.s: cholesky_factorisation.cpp.s
 
 # target to generate assembly for a file
 cholesky_factorisation.cpp.s:
-	cd /home/zl656/final_c2/v11/build_icelake && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/cholesky_factorisation_lib.dir/build.make src/CMakeFiles/cholesky_factorisation_lib.dir/cholesky_factorisation.cpp.s
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/cholesky_factorisation_lib.dir/build.make src/CMakeFiles/cholesky_factorisation_lib.dir/cholesky_factorisation.cpp.s
 .PHONY : cholesky_factorisation.cpp.s
 
 # Help Target
@@ -177,6 +177,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/zl656/final_c2/v11/build_icelake && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/zl656/coursework_o3_xhost/t76/build_icelake && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
